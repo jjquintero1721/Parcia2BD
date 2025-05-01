@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos Mejor Valorados - ReseñasPro{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Productos Mejor Valorados</h1>
+        
+        <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="minReviewsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                Min. {{ min_reviews }} reseñas
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="minReviewsDropdown">
+                <li><a class="dropdown-item {% if min_reviews == 3 %}active{% endif %}" href="{{ url_for('product.best_rated', min_reviews=3) }}">Min. 3 reseñas</a></li>
+                <li><a class="dropdown-item {% if min_reviews == 5 %}active{% endif %}" href="{{ url_for('product.best_rated', min_reviews=5) }}">Min. 5 reseñas</a></li>
+                <li><a class="dropdown-item {% if min_reviews == 10 %}active{% endif %}" href="{{ url_for('product.best_rated', min_reviews=10) }}">Min. 10 reseñas</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="alert alert-info mb-4">
+        <p class="mb-0">
+            <i class="fas fa-info-circle me-2"></i> Mostrando productos con al menos {{ min_reviews }} reseñas, ordenados por calificación promedio.
+        </p>
+    </div>
+    
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for item in productos.items %}
+            {% set producto_id = item[0] if item is iterable and not item is string else item.producto_id %}
+            {% set nombre = item[1] if item is iterable and not item is string else item.nombre %}
+            {% set descripcion = item[2] if item is iterable and not item is string else item.descripcion %}
+            {% set imagen_url = item[3] if item is iterable and not item is string else item.imagen_url %}
+            {% set total_resenas = item[4] if item is iterable and not item is string else item.total_resenas %}
+            {% set promedio_estrellas = item[5] if item is iterable and not item is string else item.promedio_calificacion %}
+            
+            <div class="col">
+                <div class="card h-100 shadow-sm position-relative">
+                    <div class="position-absolute top-0 end-0 bg-primary text-white rounded-start px-3 py-2">
+                        <i class="fas fa-star me-1"></i> {{ "%.1f"|format(promedio_estrellas) }}
+                    </div>
+                    <img src="{{ imagen_url }}" class="card-img-top" alt="{{ nombre }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ nombre }}</h5>
+                        <p class="card-text">{{ descripcion|truncate(100) }}</p>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="me-2">
+                                {% for i in range(5) %}
+                                    {% if i < promedio_estrellas|int %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% elif i < promedio_estrellas and i == promedio_estrellas|int %}
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <span class="text-muted small">{{ total_resenas }} reseñas</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <a href="{{ url_for('product.detail', producto_id=producto_id) }}" class="btn btn-primary w-100">Ver detalles</a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No hay productos que cumplan con el criterio de al menos {{ min_reviews }} reseñas.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if productos.pages > 1 %}
+        <nav aria-label="Navegación de páginas" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if productos.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('product.best_rated', min_reviews=min_reviews, page=productos.prev_num) }}" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in productos.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == productos.page %}
+                            <li class="page-item active">
+                                <a class="page-link" href="{{ url_for('product.best_rated', min_reviews=min_reviews, page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('product.best_rated', min_reviews=min_reviews, page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if productos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('product.best_rated', min_reviews=min_reviews, page=productos.next_num) }}" aria-label="Siguiente">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Siguiente">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

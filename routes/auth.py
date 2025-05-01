@@ -70,6 +70,8 @@ def register():
 @auth_bp.route('/profile')
 @login_required
 def profile():
+    from models.resena import Resena
+    
     return render_template('auth/profile.html', title='Mi Perfil')
 
 @auth_bp.route('/profile/edit', methods=['GET', 'POST'])

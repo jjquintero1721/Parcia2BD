@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos - ReseñasPro{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Productos</h1>
+        
+        <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="categoriaDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if categoria_actual %}
+                    Categoría: {{ categorias|selectattr('categoria_id', 'eq', categoria_actual)|map(attribute='nombre')|first }}
+                {% else %}
+                    Todas las categorías
+                {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="categoriaDropdown">
+                <li><a class="dropdown-item {% if not categoria_actual %}active{% endif %}" href="{{ url_for('product.index') }}">Todas las categorías</a></li>
+                <li><hr class="dropdown-divider"></li>
+                {% for categoria in categorias %}
+                    <li><a class="dropdown-item {% if categoria_actual == categoria.categoria_id %}active{% endif %}" href="{{ url_for('product.index', categoria=categoria.categoria_id) }}">{{ categoria.nombre }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for producto in productos.items %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ producto.imagen_principal }}" class="card-img-top" alt="{{ producto.nombre }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ producto.nombre }}</h5>
+                        <p class="card-text">{{ producto.descripcion|truncate(100) }}</p>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="me-2">
+                                {% for i in range(5) %}
+                                    {% if i < producto.promedio_calificacion|int %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% elif i < producto.promedio_calificacion and i == producto.promedio_calificacion|int %}
+                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <span class="text-muted small">{{ producto.total_resenas }} reseñas</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                        <small class="text-muted">{{ producto.fecha_publicacion|date }}</small>
+                        <a href="{{ url_for('product.detail', producto_id=producto.producto_id) }}" class="btn btn-sm btn-primary">Ver detalles</a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No hay productos disponibles en esta categoría.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if productos.pages > 1 %}
+        <nav aria-label="Navegación de páginas" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if productos.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('product.index', categoria=categoria_actual, page=productos.prev_num) }}" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in productos.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == productos.page %}
+                            <li class="page-item active">
+                                <a class="page-link" href="{{ url_for('product.index', categoria=categoria_actual, page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('product.index', categoria=categoria_actual, page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if productos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('product.index', categoria=categoria_actual, page=productos.next_num) }}" aria-label="Siguiente">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Siguiente">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

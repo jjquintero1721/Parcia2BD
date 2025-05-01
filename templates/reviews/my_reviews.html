@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Reseñas - ReseñasPro{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Mis Reseñas</h1>
+    </div>
+    
+    {% if resenas.items %}
+        <div class="row">
+            {% for resena in resenas.items %}
+                <div class="col-12 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <a href="{{ url_for('product.detail', producto_id=resena.producto_id) }}" class="text-decoration-none">
+                                    {{ resena.producto.nombre }}
+                                </a>
+                            </h5>
+                            <span class="badge {% if resena.estado == 'aprobada' %}bg-success{% elif resena.estado == 'pendiente' %}bg-warning{% else %}bg-danger{% endif %}">
+                                {{ resena.estado }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="rating d-flex align-items-center">
+                                    <div class="me-2">
+                                        {% for i in range(5) %}
+                                            {% if i < resena.calificacion|int %}
+                                                <i class="fas fa-star text-warning"></i>
+                                            {% elif i < resena.calificacion and i == resena.calificacion|int %}
+                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <span>{{ resena.calificacion }}</span>
+                                </div>
+                            </div>
+                            
+                            <p class="card-text">{{ resena.contenido }}</p>
+                            
+                            <div class="review-meta text-muted small">
+                                <div><i class="fas fa-map-marker-alt me-1"></i> {{ resena.ciudad_declarada }}</div>
+                                <div><i class="fas fa-calendar-alt me-1"></i> {{ resena.fecha_creacion|date }}</div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <div class="d-flex justify-content-end">
+                                {% if resena.estado != 'rechazada' %}
+                                    <a href="{{ url_for('review.edit', resena_id=resena.resena_id) }}" class="btn btn-outline-primary me-2">
+                                        <i class="fas fa-edit me-1"></i>Editar
+                                    </a>
+                                {% endif %}
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteReviewModal{{ resena.resena_id }}">
+                                    <i class="fas fa-trash-alt me-1"></i>Eliminar
+                                </button>
+                                
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteReviewModal{{ resena.resena_id }}" tabindex="-1" aria-labelledby="deleteReviewModalLabel{{ resena.resena_id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteReviewModalLabel{{ resena.resena_id }}">Confirmar eliminación</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                ¿Estás seguro de que deseas eliminar esta reseña? Esta acción no se puede deshacer.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <form action="{{ url_for('review.delete', resena_id=resena.resena_id) }}" method="post">
+                                                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if resenas.pages > 1 %}
+            <nav aria-label="Navegación de reseñas" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if resenas.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('review.my_reviews', page=resenas.prev_num) }}" aria-label="Anterior">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Anterior">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in resenas.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == resenas.page %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="{{ url_for('review.my_reviews', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('review.my_reviews', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">...</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if resenas.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('review.my_reviews', page=resenas.next_num) }}" aria-label="Siguiente">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Siguiente">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info">
+            <p class="mb-0">No has escrito ninguna reseña todavía.</p>
+            <a href="{{ url_for('product.index') }}" class="alert-link">Explora productos</a> para comenzar a escribir reseñas.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

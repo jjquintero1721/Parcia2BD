@@ -9,7 +9,7 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     page = request.args.get('page', 1, type=int)
-    productos = Producto.query.filter_by(estado='activo').order_by(
+    productos = Producto.query.filter_by(estado='activo').group_by(Producto.nombre).order_by(
         Producto.fecha_publicacion.desc()
     ).paginate(
         page=page, 
@@ -36,7 +36,8 @@ def index():
         Producto
     ).join(
         destacados_subq, 
-        Producto.producto_id == destacados_subq.c.producto_id
+        Producto.producto_id == destacados_subq.c.producto_id,
+        isouter=True  # Hace que sea un LEFT JOIN
     ).filter(
         Producto.estado == 'activo'
     ).order_by(

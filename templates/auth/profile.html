@@ -1,83 +1,145 @@
 {% extends 'base.html' %}
 
-{% block title %}Registro - ReseñasPro{% endblock %}
+{% block title %}Mi Perfil - ReseñasPro{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow">
+<div class="row">
+    <!-- Profile card -->
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
             <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Crear una cuenta</h4>
+                <h5 class="mb-0">Información de Perfil</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user-circle fa-5x text-primary"></i>
+                </div>
+                <h4>{{ current_user.nombre }}</h4>
+                <p class="text-muted">{{ current_user.email }}</p>
+                <p><small>Miembro desde: {{ current_user.fecha_registro.strftime('%d-%m-%Y') }}</small></p>
+                <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-primary">
+                    <i class="fas fa-edit me-1"></i>Editar Perfil
+                </a>
+            </div>
+        </div>
+        
+        <!-- Statistics card -->
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Estadísticas</h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('auth.register') }}">
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="mb-3">
-                        {{ form.nombre.label(class="form-label") }}
-                        {% if form.nombre.errors %}
-                            {{ form.nombre(class="form-control is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in form.nombre.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            {{ form.nombre(class="form-control") }}
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.email.label(class="form-label") }}
-                        {% if form.email.errors %}
-                            {{ form.email(class="form-control is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in form.email.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            {{ form.email(class="form-control") }}
-                        {% endif %}
-                        <small class="form-text text-muted">Nunca compartiremos tu email con nadie más.</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.password.label(class="form-label") }}
-                        {% if form.password.errors %}
-                            {{ form.password(class="form-control is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in form.password.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            {{ form.password(class="form-control") }}
-                        {% endif %}
-                        <small class="form-text text-muted">Mínimo 8 caracteres</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.confirm_password.label(class="form-label") }}
-                        {% if form.confirm_password.errors %}
-                            {{ form.confirm_password(class="form-control is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in form.confirm_password.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            {{ form.confirm_password(class="form-control") }}
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        {{ form.submit(class="btn btn-primary") }}
-                    </div>
-                </form>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Reseñas escritas
+                        <span class="badge bg-primary rounded-pill">{{ current_user.resenas.count() }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Reseñas aprobadas
+                        <span class="badge bg-success rounded-pill">
+                            {{ current_user.resenas.filter_by(estado='aprobada').count() }}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Reseñas pendientes
+                        <span class="badge bg-warning rounded-pill">
+                            {{ current_user.resenas.filter_by(estado='pendiente').count() }}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Likes dados
+                        <span class="badge bg-info rounded-pill">
+                            {{ current_user.likes.count() }}
+                        </span>
+                    </li>
+                </ul>
             </div>
-            <div class="card-footer text-center">
-                <p class="mb-0">¿Ya tienes una cuenta? <a href="{{ url_for('auth.login') }}">Inicia sesión</a></p>
+        </div>
+    </div>
+    
+    <!-- Recent reviews -->
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Mis Reseñas Recientes</h5>
+                <a href="{{ url_for('review.my_reviews') }}" class="btn btn-sm btn-outline-primary">Ver todas</a>
+            </div>
+            <div class="card-body">
+                {% set recent_reviews = current_user.resenas.order_by(Resena.fecha_creacion.desc()).limit(5).all() %}
+                
+                {% if recent_reviews %}
+                    <div class="list-group">
+                        {% for resena in recent_reviews %}
+                            <a href="{{ url_for('product.detail', producto_id=resena.producto_id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ resena.producto.nombre }}</h5>
+                                    <small class="text-muted">{{ resena.fecha_creacion.strftime('%d-%m-%Y') }}</small>
+                                </div>
+                                <div class="mb-1">
+                                    {% for i in range(5) %}
+                                        {% if i < resena.calificacion|int %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% elif i < resena.calificacion and i == resena.calificacion|int %}
+                                            <i class="fas fa-star-half-alt text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-2">{{ resena.calificacion }}</span>
+                                </div>
+                                <p class="mb-1 text-truncate">{{ resena.contenido }}</p>
+                                <small class="text-muted">
+                                    Estado: 
+                                    {% if resena.estado == 'aprobada' %}
+                                        <span class="badge bg-success">Aprobada</span>
+                                    {% elif resena.estado == 'pendiente' %}
+                                        <span class="badge bg-warning">Pendiente</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Rechazada</span>
+                                    {% endif %}
+                                </small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">Aún no has escrito ninguna reseña.</p>
+                        <a href="{{ url_for('product.index') }}" class="alert-link">Explora productos</a> para dejar tu primera opinión.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Liked products -->
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Productos que me gustan</h5>
+            </div>
+            <div class="card-body">
+                {% set liked_products = current_user.likes.filter_by(tipo='like').join(Producto).with_entities(Producto).all() %}
+                
+                {% if liked_products %}
+                    <div class="row row-cols-1 row-cols-md-3 g-3">
+                        {% for producto in liked_products %}
+                            <div class="col">
+                                <div class="card h-100">
+                                    <img src="{{ producto.imagen_principal }}" class="card-img-top" alt="{{ producto.nombre }}">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ producto.nombre }}</h6>
+                                    </div>
+                                    <div class="card-footer bg-white">
+                                        <a href="{{ url_for('product.detail', producto_id=producto.producto_id) }}" class="btn btn-sm btn-outline-primary w-100">Ver producto</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">Aún no has indicado que te gusta ningún producto.</p>
+                        <a href="{{ url_for('product.index') }}" class="alert-link">Explora productos</a> para marcar tus favoritos.
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

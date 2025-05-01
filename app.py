@@ -3,6 +3,7 @@ from config import Config
 from extensions import db, login_manager
 import os
 from datetime import datetime
+from markupsafe import Markup
 
 
 def create_app(config_class=Config):
@@ -33,6 +34,23 @@ def create_app(config_class=Config):
     with app.app_context():
         db.create_all()
     
+    # Añadir filtros personalizados
+    @app.template_filter('date')
+    def date_filter(date):
+        """Filtro para formatear fechas"""
+        if date is None:
+            return ""
+        return date.strftime('%d-%m-%Y')
+    
+    # Añadir filtro para convertir saltos de línea en <br>
+    @app.template_filter('nl2br')
+    def nl2br_filter(text):
+        """Convertir saltos de línea a etiquetas <br>"""
+        if text is None:
+            return ""
+        return Markup(text.replace('\n', '<br>'))
+    
+    # Añadir contexto global para todas las plantillas
     @app.context_processor
     def inject_now():
         return {'current_year': datetime.utcnow().year}
@@ -40,14 +58,6 @@ def create_app(config_class=Config):
     return app
 
 app = create_app()
-
-# Añadir después de crear la aplicación
-@app.template_filter('date')
-def date_filter(date):
-    """Filtro para formatear fechas"""
-    if date is None:
-        return ""
-    return date.strftime('%d-%m-%Y')
 
 if __name__ == '__main__':
     app.run(debug=True)

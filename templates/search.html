@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Resultados de búsqueda - {{ query }} - ReseñasPro{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Resultados de búsqueda</h1>
+    </div>
+    
+    <div class="mb-4">
+        <form class="d-flex" action="{{ url_for('main.search') }}" method="get">
+            <input class="form-control me-2" type="search" name="q" placeholder="Buscar" aria-label="Buscar" value="{{ query }}">
+            <button class="btn btn-primary" type="submit">Buscar</button>
+        </form>
+    </div>
+    
+    {% if query %}
+        <div class="alert alert-info mb-4">
+            <p class="mb-0">
+                <i class="fas fa-search me-2"></i> Resultados para: <strong>{{ query }}</strong>
+                {% if productos %}
+                    ({{ productos.total }} productos encontrados)
+                {% endif %}
+            </p>
+        </div>
+        
+        {% if productos and productos.items %}
+            <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+                {% for producto in productos.items %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <img src="{{ producto.imagen_principal }}" class="card-img-top" alt="{{ producto.nombre }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ producto.nombre }}</h5>
+                                <p class="card-text">{{ producto.descripcion|truncate(100) }}</p>
+                                
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="me-2">
+                                        {% for i in range(5) %}
+                                            {% if i < producto.promedio_calificacion|int %}
+                                                <i class="fas fa-star text-warning"></i>
+                                            {% elif i < producto.promedio_calificacion and i == producto.promedio_calificacion|int %}
+                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <span class="text-muted small">{{ producto.total_resenas }} reseñas</span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                                {% if producto.categoria %}
+                                    <small class="text-muted">{{ producto.categoria.nombre }}</small>
+                                {% else %}
+                                    <small class="text-muted">Sin categoría</small>
+                                {% endif %}
+                                <a href="{{ url_for('product.detail', producto_id=producto.producto_id) }}" class="btn btn-sm btn-primary">Ver detalles</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if productos.pages > 1 %}
+                <nav aria-label="Navegación de resultados" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if productos.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.search', q=query, page=productos.prev_num) }}" aria-label="Anterior">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Anterior">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in productos.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                            {% if page_num %}
+                                {% if page_num == productos.page %}
+                                    <li class="page-item active">
+                                        <a class="page-link" href="{{ url_for('main.search', q=query, page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('main.search', q=query, page=page_num) }}">{{ page_num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">...</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if productos.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.search', q=query, page=productos.next_num) }}" aria-label="Siguiente">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Siguiente">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-warning">
+                <p class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i> No se encontraron productos que coincidan con: <strong>{{ query }}</strong>
+                </p>
+                <p class="mt-2 mb-0">Sugerencias:</p>
+                <ul class="mb-0 mt-1">
+                    <li>Verifica la ortografía de tu búsqueda</li>
+                    <li>Utiliza palabras más generales</li>
+                    <li>Prueba con sinónimos</li>
+                </ul>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info">
+            <p class="mb-0">
+                <i class="fas fa-info-circle me-2"></i> Ingresa un término para buscar productos.
+            </p>
+        </div>
+    {% endif %}
+    
+    <div class="text-center mt-4">
+        <a href="{{ url_for('product.index') }}" class="btn btn-outline-primary">Ver todos los productos</a>
+    </div>
+</div>
+{% endblock %}

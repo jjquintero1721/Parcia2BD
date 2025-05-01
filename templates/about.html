@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Acerca de - ReseñasPro{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h1 class="text-center mb-4">Acerca de ReseñasPro</h1>
+                    
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <h3>Nuestra Misión</h3>
+                            <p class="lead">Conectar a consumidores con opiniones auténticas y confiables para tomar mejores decisiones de compra.</p>
+                            <p>En ReseñasPro creemos que la transparencia y la honestidad son fundamentales para construir una comunidad de confianza. Trabajamos para garantizar que cada reseña sea genuina y útil.</p>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <img src="{{ url_for('static', filename='img/about-mission.svg') }}" alt="Misión" class="img-fluid" style="max-height: 200px;">
+                        </div>
+                    </div>
+                    
+                    <hr class="my-5">
+                    
+                    <div class="row mb-5">
+                        <div class="col-md-6 text-center order-md-1 order-2">
+                            <img src="{{ url_for('static', filename='img/about-values.svg') }}" alt="Valores" class="img-fluid" style="max-height: 200px;">
+                        </div>
+                        <div class="col-md-6 order-md-2 order-1">
+                            <h3>Nuestros Valores</h3>
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="fas fa-check-circle text-success fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h5>Autenticidad</h5>
+                                            <p>Verificamos la procedencia de cada reseña para asegurar su autenticidad.</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="mb-3">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="fas fa-shield-alt text-primary fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h5>Confianza</h5>
+                                            <p>Construimos una comunidad basada en la transparencia y la confianza mutua.</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="fas fa-balance-scale text-warning fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h5>Imparcialidad</h5>
+                                            <p>Mantenemos un enfoque neutral, permitiendo que todas las opiniones sean escuchadas.</p>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-5">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3>Cómo Funcionamos</h3>
+                            <ol class="list-styled">
+                                <li class="mb-2">Los usuarios registrados pueden escribir reseñas sobre productos que han utilizado.</li>
+                                <li class="mb-2">Cada reseña pasa por un proceso de verificación para confirmar su autenticidad.</li>
+                                <li class="mb-2">Las reseñas aprobadas se publican y contribuyen a la calificación general del producto.</li>
+                                <li class="mb-2">Otros usuarios pueden encontrar estas reseñas útiles para tomar decisiones informadas.</li>
+                            </ol>
+                        </div>
+                        <div class="col-md-6 text-center">
+                            <img src="{{ url_for('static', filename='img/about-how.svg') }}" alt="Cómo funcionamos" class="img-fluid" style="max-height: 200px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{{ url_for('main.contact') }}" class="btn btn-primary">Contáctanos</a>
+                <a href="{{ url_for('product.index') }}" class="btn btn-outline-primary ms-2">Explorar Productos</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
