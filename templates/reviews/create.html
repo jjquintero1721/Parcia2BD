@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}Escribir Reseña - {{ producto.nombre }} - ReseñasPro{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rating-stars i {
+        cursor: pointer;
+        font-size: 2rem;
+        margin-right: 5px;
+    }
+    .rating-stars i.active {
+        color: #ffc107;
+    }
+    .rating-stars i:not(.active) {
+        color: #e4e5e9;
+    }
+    .preview-product {
+        max-width: 150px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('product.index') }}">Productos</a></li>
+        <li class="breadcrumb-item">
+            <a href="{{ url_for('product.detail', producto_id=producto.producto_id) }}">
+                {{ producto.nombre }}
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Escribir Reseña</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Escribe tu opinión sobre {{ producto.nombre }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('review.create', producto_id=producto.producto_id) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Calificación</label>
+                        <div class="rating-wrapper">
+                            <div class="rating-stars mb-2">
+                                <i class="fas fa-star" data-rating="1"></i>
+                                <i class="fas fa-star" data-rating="2"></i>
+                                <i class="fas fa-star" data-rating="3"></i>
+                                <i class="fas fa-star" data-rating="4"></i>
+                                <i class="fas fa-star" data-rating="5"></i>
+                            </div>
+                            
+                            <div class="rating-value mb-2">
+                                <span id="rating-text">Selecciona una calificación</span>
+                            </div>
+                            
+                            <div class="rating-select d-none">
+                                {{ form.calificacion(class="form-select") }}
+                            </div>
+                            
+                            {% if form.calificacion.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.calificacion.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Tu opinión</label>
+                        <div class="form-text mb-2">
+                            Comparte tu experiencia con este producto. ¿Qué te gustó o no te gustó? ¿Para qué lo usaste?
+                        </div>
+                        {% if form.contenido.errors %}
+                            {{ form.contenido(class="form-control is-invalid", rows=5) }}
+                            <div class="invalid-feedback">
+                                {% for error in form.contenido.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.contenido(class="form-control", rows=5) }}
+                        {% endif %}
+                        <div class="form-text text-end mt-1" id="charCount">0/2000</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Ciudad</label>
+                        <div class="form-text mb-2">
+                            Selecciona la ciudad desde donde estás escribiendo esta reseña.
+                        </div>
+                        {% if form.ciudad_declarada.errors %}
+                            {{ form.ciudad_declarada(class="form-select is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.ciudad_declarada.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.ciudad_declarada(class="form-select") }}
+                        {% endif %}
+                        <div class="form-text mt-1">
+                            Nota: Utilizamos esta información para verificar la autenticidad de las reseñas.
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Producto a reseñar</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ producto.imagen_principal }}" alt="{{ producto.nombre }}" class="img-fluid preview-product mb-3">
+                <h5>{{ producto.nombre }}</h5>
+                {% if producto.categoria %}
+                    <p class="text-muted mb-0">{{ producto.categoria.nombre }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Consejos para escribir una buena reseña</h5>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li class="mb-2">Sé específico y detallado en tu opinión.</li>
+                    <li class="mb-2">Menciona la experiencia de uso del producto.</li>
+                    <li class="mb-2">Destaca los pros y contras que encontraste.</li>
+                    <li class="mb-2">Evita comentarios ofensivos o lenguaje inapropiado.</li>
+                    <li class="mb-0">Tu honestidad ayuda a otros usuarios a tomar mejores decisiones.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Character counter for textarea
+    document.addEventListener('DOMContentLoaded', function() {
+        const textArea = document.getElementById('contenido');
+        const charCount = document.getElementById('charCount');
+        
+        function updateCharCount() {
+            const currentLength = textArea.value.length;
+            charCount.textContent = `${currentLength}/2000`;
+            
+            if (currentLength > 2000) {
+                charCount.classList.add('text-danger');
+            } else {
+                charCount.classList.remove('text-danger');
+            }
+        }
+        
+        textArea.addEventListener('input', updateCharCount);
+        updateCharCount(); // Initial count
+        
+        // Star rating
+        const stars = document.querySelectorAll('.rating-stars i');
+        const ratingSelect = document.getElementById('calificacion');
+        const ratingText = document.getElementById('rating-text');
+        
+        const ratingTexts = {
+            '0.5': 'Pésimo',
+            '1.0': 'Muy malo',
+            '1.5': 'Malo',
+            '2.0': 'Regular bajo',
+            '2.5': 'Regular',
+            '3.0': 'Regular alto',
+            '3.5': 'Bueno',
+            '4.0': 'Muy bueno',
+            '4.5': 'Excelente',
+            '5.0': 'Perfecto'
+        };
+        
+        // Set initial state based on form value
+        const initialRating = parseFloat(ratingSelect.value);
+        if (initialRating) {
+            updateStars(initialRating);
+            ratingText.textContent = `${initialRating} - ${ratingTexts[initialRating.toFixed(1)]}`;
+        }
+        
+        stars.forEach(star => {
+            star.addEventListener('mouseover', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(rating);
+            });
+            
+            star.addEventListener('mouseout', function() {
+                const currentRating = parseFloat(ratingSelect.value);
+                if (currentRating) {
+                    updateStars(currentRating);
+                } else {
+                    stars.forEach(s => s.classList.remove('active'));
+                }
+            });
+            
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                ratingSelect.value = rating.toFixed(1);
+                updateStars(rating);
+                ratingText.textContent = `${rating}.0 - ${ratingTexts[rating.toFixed(1)]}`;
+            });
+        });
+        
+        function highlightStars(rating) {
+            stars.forEach(s => {
+                const starRating = parseInt(s.getAttribute('data-rating'));
+                if (starRating <= rating) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        }
+        
+        function updateStars(rating) {
+            const fullRating = Math.floor(rating);
+            highlightStars(fullRating);
+        }
+    });
+</script>
+{% endblock %}
